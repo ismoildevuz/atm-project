@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bank page</title>
+
+    <script>
+      window.addEventListener("DOMContentLoaded", async () => {
+        const token = localStorage.getItem("token");
+        if (!token) {
+          window.location.replace("/pages/bank/login");
+        }
+        let about = localStorage.getItem("me");
+        if (about) {
+          about = JSON.parse(localStorage.getItem("me"));
+        } else {
+          about = await fetchAboutMe();
+        }
+        document.getElementById("firstName").innerText = about.firstName;
+        document.getElementById("lastName").innerText = about.lastName;
+        document.getElementById("phoneNumber").innerText = about.phoneNumber;
+        await fetchCards();
+        const logOutButton = document.getElementById("log-out");
+        logOutButton.addEventListener("click", () => {
+          localStorage.clear();
+          window.location.replace("/pages/bank/login");
+        });
+      });
+      async function fetchAboutMe() {
+        const aboutMeUrl = `http://127.0.0.1:3000/users/me`;
+        return await fetch(aboutMeUrl, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        })
+          .then(async (res) => {
+            const data = await res.json();
+            if (res.status === 200) {
+              localStorage.setItem("me", JSON.stringify(data));
+              return data;
+            } else if (res.status == 401) {
+              logError(data);
+            }
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      }
+      async function fetchCards() {
+        const cardsUrl = `http://127.0.0.1:3000/cards`;
+        return await fetch(cardsUrl, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        })
+          .then(async (res) => {
+            const cards = await res.json();
+            if (res.status === 200) {
+              const wrapperEL = document.querySelector(".wrapper");
+              const buttonEls = [];
+              for (let idx = 0; idx < 3; idx++) {
+                const buttonEl = document.createElement("button");
+                buttonEl.setAttribute("class", "card");
+                const card = cards[idx];
+                if (!card) {
+                  const imgEl = document.createElement("img");
+                  imgEl.setAttribute("src", "/assets/svgs/add-card.svg");
+                  imgEl.setAttribute("alt", "Add card");
+                  imgEl.setAttribute("height", "50");
+                  buttonEl.replaceChildren(imgEl);
+                  buttonEl.addEventListener("click", createCard);
+                } else {
+                  const balanceEl = document.createElement("p");
+                  const cardNumberEl = document.createElement("p");
+                  const cardHolderNameEl = document.createElement("p");
+                  const expiryDateEl = document.createElement("p");
+                  const rowEl = document.createElement("div");
+                  balanceEl.setAttribute("class", "balance");
+                  cardNumberEl.setAttribute("class", "cardNumber");
+                  cardHolderNameEl.setAttribute("class", "cardHolderName");
+                  expiryDateEl.setAttribute("class", "expiryDate");
+                  rowEl.setAttribute("class", "row");
+                  balanceEl.innerText = `$${card.balance}`;
+                  cardNumberEl.innerText = card.cardNumber
+                    .match(/\d{4}/g)
+                    .join(" ");
+                  cardHolderNameEl.innerText = card.cardHolderName;
+                  expiryDateEl.innerText = card.expiryDate
+                    .match(/\d{2}/g)
+                    .join("/");
+                  rowEl.append(cardHolderNameEl, expiryDateEl);
+                  buttonEl.replaceChildren(balanceEl, cardNumberEl, rowEl);
+                  buttonEl.addEventListener("click", async () => {
+                    await updateCard(card.id);
+                  });
+                }
+                buttonEls.push(buttonEl);
+              }
+              wrapperEL.replaceChildren(...buttonEls);
+            } else if (res.status == 401) {
+              logError(data);
+            }
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      }
+      async function createCard() {
+        const createCardUrl = `http://127.0.0.1:3000/cards`;
+        const data = {
+          pin: prompt("Set PIN for a new card"),
+        };
+        if (data.pin == null) {
+          return;
+        }
+        fetch(createCardUrl, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data),
+        })
+          .then(async (res) => {
+            const data = await res.json();
+            if (res.status === 201) {
+              await fetchCards();
+            } else if (res.status == 400 || res.status == 401) {
+              logError(data);
+            }
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      }
+      async function updateCard(id) {
+        const updateCardUrl = `http://127.0.0.1:3000/cards`;
+        const data = {
+          id,
+          pin: prompt("Set new PIN for the card"),
+        };
+        if (data.pin == null) {
+          return;
+        }
+        fetch(updateCardUrl, {
+          method: "PATCH",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data),
+        })
+          .then(async (res) => {
+            const data = await res.json();
+            if (res.status === 200) {
+              await fetchCards();
+            } else if (res.status == 400 || res.status == 401) {
+              logError(data);
+            }
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      }
+      function logError(data) {
+        if (data.message) {
+          alert(data.message);
+        }
+        if (data.error) {
+          alert(data.error);
+        }
+        if (data.errors) {
+          alert(
+            data.errors
+              .map((error) => Object.values(error.constraints))
+              .flat()
+              .join("\n")
+          );
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <header>
+      <div class="container">
+        <div class="row">
+          <button active class="info">
+            <img src="/assets/svgs/user.svg" alt="User" height="30px" />
+
+            <div class="detail">
+              <p class="fullName">
+                <span id="firstName">John</span>
+                <span id="lastName">Doe</span>
+              </p>
+              <p id="phoneNumber">+998 99 888-77-66</p>
+            </div>
+          </button>
+
+          <button id="log-out">Log out</button>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <div class="container">
+        <div class="wrapper">
+          <button class="card">
+            <img src="/assets/svgs/add-card.svg" alt="Add card" height="50" />
+          </button>
+
+          <button class="card">
+            <img src="/assets/svgs/add-card.svg" alt="Add card" height="50" />
+          </button>
+
+          <button class="card">
+            <img src="/assets/svgs/add-card.svg" alt="Add card" height="50" />
+          </button>
+        </div>
+      </div>
+    </main>
+
+    <style>
+      .container {
+        max-width: 1000px;
+        margin: 0 auto;
+      }
+
+      header {
+        margin-top: 20px;
+      }
+
+      p {
+        margin: 2px;
+      }
+
+      .info {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .fullName {
+        font-size: 12px;
+      }
+
+      #phoneNumber {
+        font-size: 10px;
+      }
+
+      button {
+        padding: 10px;
+      }
+
+      @media (max-width: 1024px) {
+        .wrapper {
+          flex-direction: column;
+        }
+      }
+
+      .wrapper {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        margin-top: 50px;
+        height: 70vh;
+        min-width: 300px;
+      }
+
+      .card {
+        cursor: pointer;
+        max-height: 170px;
+        max-width: 310px;
+        height: 100%;
+        width: 100%;
+        border-radius: 10px;
+      }
+
+      .balance {
+        font-size: 28px;
+        text-align: start;
+      }
+
+      .cardNumber {
+        margin: 40px 0 20px;
+        font-size: 18px;
+        text-align: start;
+      }
+
+      @media (max-width: 400px) {
+        .cardHolderName {
+          font-size: 14px !important;
+        }
+      }
+
+      .cardHolderName {
+        font-size: 18px;
+      }
+
+      .expiryDate {
+        font-size: 18px;
+        text-align: end;
+      }
+
+      .row {
+        display: flex;
+        justify-content: space-between;
+        gap: 20px;
+      }
+    </style>
+  </body>
+</html>

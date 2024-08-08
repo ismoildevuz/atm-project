@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ATM page</title>
+
+    <script>
+      window.addEventListener("DOMContentLoaded", () => {
+        const atmInput = document.getElementById("atm-input");
+        atmInput.value = "";
+        function onInput(value) {
+          switch (value) {
+            case "0":
+            case "1":
+            case "2":
+            case "3":
+            case "4":
+            case "5":
+            case "6":
+            case "7":
+            case "8":
+            case "9":
+              if (atmInput.value.length < 4) atmInput.value += value;
+              break;
+            case "cancel":
+            case "clear":
+            case "enter":
+              atmInput.value = "";
+              break;
+          }
+        }
+        document.querySelectorAll(".input-btn").forEach((inputBtn) => {
+          inputBtn.addEventListener("click", () => {
+            onInput(inputBtn.getAttribute("data-value"));
+          });
+        });
+      });
+    </script>
+  </head>
+
+  <body>
+    <div class="wrapper">
+      <div class="container">
+        <div class="row">
+          <div class="col inner-shadow">
+            <button>
+              <img
+                src="/assets/svgs/arrow-right.svg"
+                alt="Balance"
+                height="70"
+              />
+            </button>
+
+            <button>
+              <img src="/assets/svgs/arrow-right.svg" alt="Loan" height="70" />
+            </button>
+          </div>
+
+          <div class="inner-shadow">
+            <div class="row">
+              <p>Balance</p>
+
+              <p>Loan</p>
+            </div>
+
+            <input id="atm-input" type="text" minlength="4" maxlength="4" />
+
+            <div class="row">
+              <p>Withdrawal</p>
+
+              <p>Deposit</p>
+            </div>
+          </div>
+
+          <div class="col inner-shadow">
+            <button>
+              <img
+                src="/assets/svgs/arrow-left.svg"
+                alt="Withdrawal"
+                height="70"
+              />
+            </button>
+
+            <button>
+              <img
+                src="/assets/svgs/arrow-left.svg"
+                alt="Deposit"
+                height="70"
+              />
+            </button>
+          </div>
+        </div>
+
+        <div class="input inner-shadow">
+          <button type="button" class="input-btn" data-value="1">
+            <p class="input-number">1</p>
+            <p class="input-letters">QZ</p>
+          </button>
+          <button class="input-btn" data-value="2">
+            <p class="input-number">2</p>
+            <p class="input-letters">ABC</p>
+          </button>
+          <button class="input-btn" data-value="3">
+            <p class="input-number">3</p>
+            <p class="input-letters">DEF</p>
+          </button>
+          <button class="input-btn cancel" data-value="cancel">
+            <p class="input-name">CANCEL</p>
+          </button>
+          <button class="input-btn" data-value="4">
+            <p class="input-number">4</p>
+            <p class="input-letters">GHI</p>
+          </button>
+          <button class="input-btn" data-value="5">
+            <p class="input-number">5</p>
+            <p class="input-letters">JKL</p>
+          </button>
+          <button class="input-btn" data-value="6">
+            <p class="input-number">6</p>
+            <p class="input-letters">MNO</p>
+          </button>
+          <button class="input-btn clear" data-value="clear">
+            <p class="input-name">CLEAR</p>
+          </button>
+          <button class="input-btn" data-value="7">
+            <p class="input-number">7</p>
+            <p class="input-letters">PRS</p>
+          </button>
+          <button class="input-btn" data-value="8">
+            <p class="input-number">8</p>
+            <p class="input-letters">TUV</p>
+          </button>
+          <button class="input-btn" data-value="9">
+            <p class="input-number">9</p>
+            <p class="input-letters">WXY</p>
+          </button>
+          <button class="input-btn enter" data-value="enter">
+            <p class="input-name">ENTER</p>
+          </button>
+          <div></div>
+          <button class="input-btn" data-value="0">
+            <p class="input-number">0</p>
+          </button>
+          <div></div>
+          <div></div>
+        </div>
+      </div>
+      <div></div>
+    </div>
+
+    <style>
+      .wrapper {
+        max-width: 1000px;
+        margin: 100px auto;
+        height: 70vh;
+        display: flex;
+      }
+
+      .row {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 10px;
+      }
+
+      .col {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        gap: 10px;
+      }
+
+      .inner-shadow {
+        box-shadow: inset 0.5px 0.5px 2px;
+        padding: 10px;
+      }
+
+      input {
+        padding: 10px;
+        margin: 20px 0 10px;
+      }
+
+      p {
+        margin: 20px 0 0;
+      }
+
+      .input {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 20px;
+      }
+
+      .input-number {
+        font-size: 36px;
+        font-weight: 900;
+        margin: 0;
+      }
+
+      .input-letters {
+        font-weight: 700;
+        margin: 10px 0;
+      }
+
+      .input-name {
+        margin-top: 10px;
+        margin-left: 10px;
+        font-weight: 900;
+      }
+
+      .input-btn {
+        cursor: pointer;
+      }
+
+      .input-btn.cancel {
+        background-color: red;
+      }
+
+      .input-btn.clear {
+        background-color: orange;
+      }
+
+      .input-btn.enter {
+        background-color: green;
+      }
+
+      button {
+        display: flex;
+        align-items: start;
+        justify-content: space-between;
+      }
+    </style>
+  </body>
+</html>

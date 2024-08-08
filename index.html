@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Home page</title>
+  </head>
+
+  <body>
+    <div class="wrapper">
+      <div class="container">
+        <h3>Go to the Bank to register</h3>
+
+        <a href="/pages/bank/">
+          <button aria-label="Bank">
+            <img
+              src="/assets/svgs/bank.svg"
+              aria-label="Bank"
+              height="200"
+              alt="Bank"
+            />
+          </button>
+        </a>
+      </div>
+
+      <div class="container">
+        <h3>Go to the ATM to use</h3>
+
+        <a href="/pages/atm/">
+          <button aria-label="Atm">
+            <img
+              src="/assets/svgs/atm.svg"
+              aria-label="Atm"
+              height="200"
+              alt="Atm"
+            />
+          </button>
+        </a>
+      </div>
+    </div>
+
+    <style>
+      .wrapper {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 50px;
+        width: 100%;
+        height: 90vh;
+        min-width: 320px;
+      }
+
+      .container {
+        width: min-content;
+      }
+
+      h3 {
+        text-align: center;
+      }
+
+      button {
+        cursor: pointer;
+        padding: 25px;
+      }
+
+      @media (max-width: 600px) {
+        .wrapper {
+          flex-direction: column;
+        }
+      }
+    </style>
+  </body>
+</html>

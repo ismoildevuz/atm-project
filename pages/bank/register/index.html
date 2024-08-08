@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Register page</title>
+
+    <script>
+      window.addEventListener("DOMContentLoaded", () => {
+        const logInButton = document.getElementById("log-in");
+        logInButton.addEventListener("click", () => {
+          localStorage.clear();
+          window.location.replace("/pages/bank/login");
+        });
+        const phoneInput = document.getElementById("phoneNumber");
+        phoneInput.addEventListener("keypress", (event) => {
+          let inputValue = event.target.value.replace(/\D/g, "");
+          let formattedValue = "+";
+          if (!`${inputValue}`.startsWith("998")) {
+            inputValue = "998";
+          }
+          for (let i = 0; i < inputValue.length; i++) {
+            if ([3, 5].includes(i)) {
+              formattedValue += " ";
+            } else if ([8, 10].includes(i)) {
+              formattedValue += "-";
+            }
+            formattedValue += inputValue[i];
+          }
+          event.target.value = formattedValue;
+        });
+        const registerUrl = `http://127.0.0.1:3000/users/register`;
+        const form = document.forms["register"];
+        const registerButton = document.querySelector('button[type="submit"]');
+        form.addEventListener("submit", (event) => {
+          event.preventDefault();
+          registerButton.classList.add("loading");
+          registerButton.setAttribute("disabled", true);
+          const formData = new FormData(form);
+          formData.set(
+            "phoneNumber",
+            `+${String(phoneInput.value).replace(/\D/g, "")}`
+          );
+          const data = {};
+          formData.forEach((value, key) => {
+            data[key] = value;
+          });
+          fetch(registerUrl, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(data),
+          })
+            .then(async (res) => {
+              const data = await res.json();
+              if (res.status === 201) {
+                localStorage.setItem("token", data.token);
+                window.location.replace("/pages/bank");
+              } else if (res.status == 400) {
+                logError(data);
+              }
+            })
+            .catch((error) => {
+              console.log(error);
+            })
+            .finally(() => {
+              registerButton.classList.remove("loading");
+              registerButton.removeAttribute("disabled");
+            });
+        });
+      });
+      function logError(data) {
+        if (data.message) {
+          alert(data.message);
+        }
+        if (data.error) {
+          alert(data.error);
+        }
+        if (data.errors) {
+          alert(
+            data.errors
+              .map((error) => Object.values(error.constraints))
+              .flat()
+              .join("\n")
+          );
+        }
+      }
+    </script>
+  </head>
+
+  <body>
+    <header>
+      <div class="container">
+        <button id="log-in">Login</button>
+      </div>
+    </header>
+
+    <div class="wrapper">
+      <form name="register">
+        <div class="row">
+          <div class="col">
+            <label for="firstName">First name:</label>
+            <input id="firstName" name="firstName" type="text" required />
+          </div>
+
+          <div class="col">
+            <label for="lastName">Last name:</label>
+            <input id="lastName" name="lastName" type="text" required />
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col">
+            <label for="phoneNumber">Phone number:</label>
+            <input
+              id="phoneNumber"
+              name="phoneNumber"
+              type="tel"
+              inputmode="tel"
+              pattern="+998 ## ###-##-##"
+              minlength="17"
+              maxlength="17"
+              required
+            />
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col">
+            <label for="password">Password:</label>
+            <input
+              id="password"
+              name="password"
+              type="password"
+              minlength="8"
+              required
+            />
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col">
+            <button type="reset">Reset</button>
+          </div>
+
+          <div class="col">
+            <button type="submit">Register</button>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      .container {
+        max-width: 500px;
+        margin: 0 auto;
+      }
+
+      header {
+        margin-top: 20px;
+      }
+
+      .wrapper {
+        min-width: 300px;
+        height: 90vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .row {
+        display: flex;
+        justify-content: space-between;
+        gap: 20px;
+        margin-bottom: 20px;
+      }
+
+      .col {
+        flex-grow: 1;
+      }
+
+      form {
+        border: 1px solid;
+        border-radius: 10px;
+        max-width: 500px;
+        width: 100%;
+        padding: 20px;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 10px;
+      }
+
+      input,
+      button {
+        padding: 10px;
+        width: 100%;
+      }
+    </style>
+  </body>
+</html>
