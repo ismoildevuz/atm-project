@@ -17,6 +17,7 @@
               src="/assets/svgs/bank.svg"
               aria-label="Bank"
               height="200"
+              width="200"
               alt="Bank"
             />
           </button>
@@ -32,6 +33,7 @@
               src="/assets/svgs/atm.svg"
               aria-label="Atm"
               height="200"
+              width="200"
               alt="Atm"
             />
           </button>
@@ -50,12 +52,10 @@
         justify-content: center;
         padding: 20px 0;
         gap: 50px;
+        max-width: 600px;
+        margin: 0 auto;
         width: 100%;
         min-height: 90vh;
-      }
-
-      .container {
-        width: min-content;
       }
 
       h3 {
@@ -70,6 +70,7 @@
       @media (max-width: 600px) {
         .wrapper {
           flex-direction: column;
+          gap: 20px;
         }
       }
     </style>
