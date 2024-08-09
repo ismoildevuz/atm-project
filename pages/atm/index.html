@@ -7,6 +7,10 @@
 
     <script>
       window.addEventListener("DOMContentLoaded", async () => {
+        const homePageButton = document.getElementById("home-page");
+        homePageButton.addEventListener("click", () => {
+          window.location.assign("/");
+        });
         const wrapperEL = document.querySelector(".cards");
         const token = localStorage.getItem("token");
         if (token) {
@@ -110,6 +114,7 @@
                       const transferCardHolderName =
                         document.createElement("p");
                       title.style.fontSize = "20px";
+                      title.style.marginTop = "0";
                       title.innerText = `Transaction:`;
                       type.innerText = `Type: ${data.type}`;
                       amount.innerText = `Amount: $${data.amount}`;
@@ -169,6 +174,7 @@
                       const loanPeriod = document.createElement("p");
                       const loanRate = document.createElement("p");
                       title.style.fontSize = "20px";
+                      title.style.marginTop = "0";
                       title.innerText = `Transaction:`;
                       type.innerText = `Type: ${data.type}`;
                       amount.innerText = `Amount: $${data.amount}`;
@@ -263,6 +269,7 @@
                       const amount = document.createElement("p");
                       const balance = document.createElement("p");
                       title.style.fontSize = "20px";
+                      title.style.marginTop = "0";
                       title.innerText = `Transaction:`;
                       type.innerText = `Type: ${data.type}`;
                       amount.innerText = `Amount: $${data.amount}`;
@@ -299,6 +306,7 @@
                       const amount = document.createElement("p");
                       const balance = document.createElement("p");
                       title.style.fontSize = "20px";
+                      title.style.marginTop = "0";
                       title.innerText = `Transaction:`;
                       type.innerText = `Type: ${data.type}`;
                       amount.innerText = `Amount: $${data.amount}`;
@@ -318,7 +326,7 @@
           }
         }
         async function fetchCards() {
-          const cardsUrl = `http://127.0.0.1:3000/cards`;
+          const cardsUrl = `https://nest-atm-project.onrender.com/cards`;
           return await fetch(cardsUrl, {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -383,7 +391,7 @@
             });
         }
         async function fetchCard(cardNumber) {
-          const cardsUrl = `http://127.0.0.1:3000/cards/${cardNumber}`;
+          const cardsUrl = `https://nest-atm-project.onrender.com/cards/${cardNumber}`;
           return await fetch(cardsUrl, {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -402,7 +410,7 @@
             });
         }
         async function createTransaction(transaction) {
-          const createCardUrl = `http://127.0.0.1:3000/transactions`;
+          const createCardUrl = `https://nest-atm-project.onrender.com/transactions`;
           return fetch(createCardUrl, {
             method: "POST",
             headers: {
@@ -483,11 +491,11 @@
             </button>
           </div>
 
-          <div class="inner-shadow">
+          <div class="inner-shadow display">
             <div class="row">
-              <p>Transfer</p>
+              <p class="label">Transfer</p>
 
-              <p>Loan</p>
+              <p class="label">Loan</p>
             </div>
 
             <input
@@ -500,9 +508,9 @@
             />
 
             <div class="row">
-              <p>Withdrawal</p>
+              <p class="label">Withdrawal</p>
 
-              <p>Deposit</p>
+              <p class="label">Deposit</p>
             </div>
           </div>
 
@@ -577,8 +585,9 @@
           <button class="input-btn" data-value="0">
             <p class="input-number">0</p>
           </button>
-          <div></div>
-          <div></div>
+          <button id="home-page">
+            <p>Home page</p>
+          </button>
         </div>
       </div>
 
@@ -586,18 +595,36 @@
     </div>
 
     <style>
+      * {
+        box-sizing: border-box;
+      }
+
       table,
       td {
         border: 1px solid;
-        padding: 5px 10px;
       }
 
       .wrapper {
-        max-width: 1200px;
-        margin: 100px auto;
-        height: 70vh;
         display: flex;
+        justify-content: start;
         gap: 20px;
+        max-width: 1200px;
+        margin: 50px auto;
+      }
+
+      .type-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      @media (max-width: 1000px) {
+        .wrapper {
+          flex-direction: column;
+          align-items: center;
+          gap: 30px;
+          margin: 20px auto;
+        }
       }
 
       .container {
@@ -607,7 +634,10 @@
 
       #check {
         flex-grow: 1;
-        max-width: 410px;
+      }
+
+      .display {
+        overflow-x: auto;
       }
 
       .row {
@@ -615,6 +645,7 @@
         justify-content: space-between;
         gap: 10px;
         margin-bottom: 10px;
+        width: 100%;
       }
 
       .col {
@@ -632,33 +663,33 @@
 
       input {
         padding: 10px;
-        margin: 20px 0 10px;
-      }
-
-      p {
-        margin: 20px 0 0;
+        margin: 10px 0;
+        width: 100%;
       }
 
       .input {
         display: grid;
         grid-template-columns: repeat(4, 1fr);
         gap: 20px;
+        height: 360px;
+      }
+
+      #home-page {
+        grid-column-start: 3;
+        grid-column-end: 5;
       }
 
       .input-number {
         font-size: 36px;
         font-weight: 900;
-        margin: 0;
+        margin: 2px;
       }
 
       .input-letters {
         font-weight: 700;
-        margin: 10px 0;
       }
 
       .input-name {
-        margin-top: 10px;
-        margin-left: 10px;
         font-weight: 900;
       }
 
@@ -688,7 +719,10 @@
         display: flex;
         flex-direction: column;
         gap: 20px;
-        min-width: 300px;
+        flex-grow: 1;
+        max-width: 310px;
+        width: 100%;
+        min-height: 170px;
       }
 
       .card {
@@ -698,11 +732,14 @@
         max-width: 310px;
         height: 100%;
         width: 100%;
+        margin: 0 auto;
+        padding: 10px;
         border-radius: 10px;
         display: block;
       }
 
       .card.no-card {
+        flex-grow: 1;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -710,10 +747,10 @@
 
       .card.no-card p {
         font-size: 20px;
-        margin-bottom: 10px;
       }
 
       .balance {
+        margin: 2px;
         font-size: 28px;
         text-align: start;
       }
@@ -724,9 +761,36 @@
         text-align: start;
       }
 
-      @media (max-width: 400px) {
+      @media (max-width: 500px) {
         .cardHolderName {
           font-size: 14px !important;
+        }
+
+        .label {
+          font-size: 12px;
+          margin: 2px 0;
+        }
+
+        .input {
+          gap: 10px;
+          overflow-x: auto;
+        }
+
+        .type-btn img {
+          width: 35px;
+          height: 35px;
+        }
+
+        .input-number {
+          font-size: 20px;
+        }
+
+        .input-letters {
+          font-size: 10px;
+        }
+
+        .input-name {
+          font-size: 10px;
         }
       }
 

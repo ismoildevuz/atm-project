@@ -36,7 +36,7 @@
         });
       });
       async function fetchAboutMe() {
-        const aboutMeUrl = `http://127.0.0.1:3000/users/me`;
+        const aboutMeUrl = `https://nest-atm-project.onrender.com/users/me`;
         return await fetch(aboutMeUrl, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -56,7 +56,7 @@
           });
       }
       async function fetchCards() {
-        const cardsUrl = `http://127.0.0.1:3000/cards`;
+        const cardsUrl = `https://nest-atm-project.onrender.com/cards`;
         return await fetch(cardsUrl, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -115,7 +115,7 @@
           });
       }
       async function createCard() {
-        const createCardUrl = `http://127.0.0.1:3000/cards`;
+        const createCardUrl = `https://nest-atm-project.onrender.com/cards`;
         const data = {
           pin: prompt("Set PIN for a new card"),
         };
@@ -143,7 +143,7 @@
           });
       }
       async function updateCard(id) {
-        const updateCardUrl = `http://127.0.0.1:3000/cards`;
+        const updateCardUrl = `https://nest-atm-project.onrender.com/cards`;
         const data = {
           id,
           pin: prompt("Set new PIN for the card"),
