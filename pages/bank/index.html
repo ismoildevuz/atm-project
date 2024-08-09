@@ -19,8 +19,16 @@
         }
         document.getElementById("firstName").innerText = about.firstName;
         document.getElementById("lastName").innerText = about.lastName;
-        document.getElementById("phoneNumber").innerText = about.phoneNumber;
+        document.getElementById("phoneNumber").innerText =
+          about.phoneNumber.replace(
+            /(\d{3})(\d{2})(\d{3})(\d{2})(\d{2})/,
+            "$1 $2 $3-$4-$5"
+          );
         await fetchCards();
+        const homePageButton = document.getElementById("home-page");
+        homePageButton.addEventListener("click", () => {
+          window.location.assign("/");
+        });
         const logOutButton = document.getElementById("log-out");
         logOutButton.addEventListener("click", () => {
           localStorage.clear();
@@ -185,17 +193,21 @@
     <header>
       <div class="container">
         <div class="row">
-          <button active class="info">
-            <img src="/assets/svgs/user.svg" alt="User" height="30px" />
+          <div class="row">
+            <button active class="info">
+              <img src="/assets/svgs/user.svg" alt="User" height="30px" />
 
-            <div class="detail">
-              <p class="fullName">
-                <span id="firstName">John</span>
-                <span id="lastName">Doe</span>
-              </p>
-              <p id="phoneNumber">+998 99 888-77-66</p>
-            </div>
-          </button>
+              <div class="detail">
+                <p class="fullName">
+                  <span id="firstName">John</span>
+                  <span id="lastName">Doe</span>
+                </p>
+                <p id="phoneNumber">+998 99 888-77-66</p>
+              </div>
+            </button>
+
+            <button id="home-page">Home page</button>
+          </div>
 
           <button id="log-out">Log out</button>
         </div>

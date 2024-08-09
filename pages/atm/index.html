@@ -6,33 +6,447 @@
     <title>ATM page</title>
 
     <script>
-      window.addEventListener("DOMContentLoaded", () => {
+      window.addEventListener("DOMContentLoaded", async () => {
+        const wrapperEL = document.querySelector(".cards");
+        const token = localStorage.getItem("token");
+        if (token) {
+          await fetchCards();
+        } else {
+          const bankPageButton = document.getElementById("bank-page");
+          bankPageButton.addEventListener("click", () => {
+            window.location.assign("/pages/bank");
+          });
+          alert("Please, get some cards");
+        }
         const atmInput = document.getElementById("atm-input");
-        atmInput.value = "";
-        function onInput(value) {
-          switch (value) {
-            case "0":
-            case "1":
-            case "2":
-            case "3":
-            case "4":
-            case "5":
-            case "6":
-            case "7":
-            case "8":
-            case "9":
-              if (atmInput.value.length < 4) atmInput.value += value;
-              break;
-            case "cancel":
-            case "clear":
-            case "enter":
-              atmInput.value = "";
-              break;
+        let transaction = {};
+        function onTypeBtn(value) {
+          if (!wrapperEL.getAttribute("data-card-selected")) {
+            return alert("Please, select a card");
+          }
+          transaction = {};
+          transaction["type"] = value;
+          atmInput.value = "";
+          atmInput.setAttribute("placeholder", "Input card PIN");
+          atmInput.removeAttribute("disabled");
+          atmInput.style.opacity = "1";
+          atmInput.focus();
+        }
+        async function onInput(value) {
+          if (!wrapperEL.getAttribute("data-card-selected")) {
+            return alert("Please, select a card");
+          }
+          if (!atmInput.getAttribute("disabled")) {
+            switch (value) {
+              case "0":
+              case "1":
+              case "2":
+              case "3":
+              case "4":
+              case "5":
+              case "6":
+              case "7":
+              case "8":
+              case "9":
+                atmInput.value += value;
+                break;
+              case "cancel":
+                atmInput.style.opacity = "0";
+                atmInput.setAttribute("disabled", true);
+                atmInput.setAttribute("placeholder", "Input card PIN");
+                atmInput.value = "";
+                transaction = {};
+              case "clear":
+                atmInput.value = "";
+                atmInput.focus();
+                break;
+              case "enter":
+                switch (transaction["type"]) {
+                  case "transfer":
+                    transaction["cardId"] =
+                      wrapperEL.getAttribute("data-card-selected");
+                    if (!transaction["pin"]) {
+                      transaction["pin"] = atmInput.value;
+                      atmInput.setAttribute(
+                        "placeholder",
+                        "Input transfer card number"
+                      );
+                      atmInput.value = "";
+                      atmInput.focus();
+                    } else if (!transaction["transferCardId"]) {
+                      const card = await fetchCard(atmInput.value);
+                      if (!card) {
+                        alert("Card not found");
+                      }
+                      if (
+                        confirm(
+                          `Card number: ${card.cardNumber
+                            .match(/\d{4}/g)
+                            .join(" ")}\nCard holder name: ${
+                            card.cardHolderName
+                          }`
+                        )
+                      ) {
+                        transaction["transferCardId"] = card.id;
+                        atmInput.setAttribute(
+                          "placeholder",
+                          "Input amount of money"
+                        );
+                        atmInput.value = "";
+                      }
+                      atmInput.focus();
+                    } else {
+                      transaction["amount"] = Number(atmInput.value);
+                      atmInput.style.opacity = "0";
+                      atmInput.setAttribute("disabled", true);
+                      atmInput.setAttribute("placeholder", "Input card PIN");
+                      atmInput.value = "";
+                      const data = await createTransaction(transaction);
+                      const title = document.createElement("p");
+                      const type = document.createElement("p");
+                      const amount = document.createElement("p");
+                      const balance = document.createElement("p");
+                      const transferCardNumber = document.createElement("p");
+                      const transferCardHolderName =
+                        document.createElement("p");
+                      title.style.fontSize = "20px";
+                      title.innerText = `Transaction:`;
+                      type.innerText = `Type: ${data.type}`;
+                      amount.innerText = `Amount: $${data.amount}`;
+                      balance.innerText = `Remaining balance: $${data.balance}`;
+                      transferCardNumber.innerText = `Transfer card number: ${data.transferCard.cardNumber
+                        .match(/\d{4}/g)
+                        .join(" ")}`;
+                      transferCardHolderName.innerText = `Transfer card holder name: ${data.transferCard.cardHolderName}`;
+                      document.querySelector(
+                        ".balance"
+                      ).innerText = `$${data.balance}`;
+                      document
+                        .getElementById("check")
+                        .replaceChildren(
+                          title,
+                          type,
+                          amount,
+                          balance,
+                          transferCardNumber,
+                          transferCardHolderName
+                        );
+                      transaction = {};
+                    }
+                    break;
+                  case "loan":
+                    transaction["transferCardId"] =
+                      wrapperEL.getAttribute("data-card-selected");
+                    if (!transaction["pin"]) {
+                      transaction["pin"] = atmInput.value;
+                      atmInput.setAttribute(
+                        "placeholder",
+                        "Input amount of money"
+                      );
+                      atmInput.value = "";
+                      atmInput.focus();
+                    } else if (!transaction["amount"]) {
+                      transaction["amount"] = Number(atmInput.value);
+                      atmInput.setAttribute(
+                        "placeholder",
+                        "Input loan period in month"
+                      );
+                      atmInput.value = "";
+                      atmInput.focus();
+                    } else {
+                      transaction["loan"] = {};
+                      transaction["loan"]["period"] = Number(atmInput.value);
+                      atmInput.style.opacity = "0";
+                      atmInput.setAttribute("disabled", true);
+                      atmInput.setAttribute("placeholder", "Input card PIN");
+                      atmInput.value = "";
+                      const data = await createTransaction(transaction);
+                      const title = document.createElement("p");
+                      const type = document.createElement("p");
+                      const amount = document.createElement("p");
+                      const balance = document.createElement("p");
+                      const loanType = document.createElement("p");
+                      const loanPeriod = document.createElement("p");
+                      const loanRate = document.createElement("p");
+                      title.style.fontSize = "20px";
+                      title.innerText = `Transaction:`;
+                      type.innerText = `Type: ${data.type}`;
+                      amount.innerText = `Amount: $${data.amount}`;
+                      balance.innerText = `Updated balance: $${data.balance}`;
+                      loanType.innerText = `Loan type: ${data.loan.type}`;
+                      loanPeriod.innerText = `Loan period: ${data.loan.period}`;
+                      loanRate.innerText = `Loan rate: %${data.loan.rate}`;
+                      const rows = [];
+                      for (const schedule of data.loanSchedules) {
+                        const row = document.createElement("tr");
+                        const date = document.createElement("td");
+                        const payment = document.createElement("td");
+                        const mainDebt = document.createElement("td");
+                        const percent = document.createElement("td");
+                        const balance = document.createElement("td");
+                        date.innerText = new Date(
+                          schedule.date
+                        ).toLocaleDateString();
+                        payment.innerText = `$${schedule.payment}`;
+                        mainDebt.innerText = `$${schedule.mainDebt}`;
+                        percent.innerText = `$${schedule.percent}`;
+                        balance.innerText = `$${schedule.balance}`;
+                        row.replaceChildren(
+                          date,
+                          payment,
+                          mainDebt,
+                          percent,
+                          balance
+                        );
+                        rows.push(row);
+                      }
+                      const table = document.createElement("table");
+                      const head = document.createElement("thead");
+                      const body = document.createElement("tbody");
+                      const row = document.createElement("tr");
+                      const date = document.createElement("td");
+                      const payment = document.createElement("td");
+                      const mainDebt = document.createElement("td");
+                      const percent = document.createElement("td");
+                      const balanceHeader = document.createElement("td");
+                      date.innerText = "Date";
+                      payment.innerText = "Payment";
+                      mainDebt.innerText = "Main debt";
+                      percent.innerText = "Interest";
+                      balanceHeader.innerText = "Balance";
+                      row.replaceChildren(
+                        date,
+                        payment,
+                        mainDebt,
+                        percent,
+                        balanceHeader
+                      );
+                      body.replaceChildren(...rows);
+                      head.replaceChildren(row);
+                      table.replaceChildren(head, body);
+                      table.style.marginTop = "20px";
+                      document
+                        .getElementById("check")
+                        .replaceChildren(
+                          title,
+                          type,
+                          amount,
+                          balance,
+                          loanType,
+                          loanPeriod,
+                          loanRate,
+                          table
+                        );
+                      transaction = {};
+                    }
+                    break;
+                  case "withdrawal":
+                    transaction["cardId"] =
+                      wrapperEL.getAttribute("data-card-selected");
+                    if (!transaction["pin"]) {
+                      transaction["pin"] = atmInput.value;
+                      atmInput.setAttribute(
+                        "placeholder",
+                        "Input amount of money"
+                      );
+                      atmInput.value = "";
+                      atmInput.focus();
+                    } else {
+                      transaction["amount"] = Number(atmInput.value);
+                      atmInput.style.opacity = "0";
+                      atmInput.setAttribute("disabled", true);
+                      atmInput.setAttribute("placeholder", "Input card PIN");
+                      atmInput.value = "";
+                      const data = await createTransaction(transaction);
+                      const title = document.createElement("p");
+                      const type = document.createElement("p");
+                      const amount = document.createElement("p");
+                      const balance = document.createElement("p");
+                      title.style.fontSize = "20px";
+                      title.innerText = `Transaction:`;
+                      type.innerText = `Type: ${data.type}`;
+                      amount.innerText = `Amount: $${data.amount}`;
+                      balance.innerText = `Remaining balance: $${data.balance}`;
+                      document.querySelector(
+                        ".balance"
+                      ).innerText = `$${data.balance}`;
+                      document
+                        .getElementById("check")
+                        .replaceChildren(title, type, amount, balance);
+                      transaction = {};
+                    }
+                    break;
+                  case "deposit":
+                    transaction["cardId"] =
+                      wrapperEL.getAttribute("data-card-selected");
+                    if (!transaction["pin"]) {
+                      transaction["pin"] = atmInput.value;
+                      atmInput.setAttribute(
+                        "placeholder",
+                        "Input amount of money"
+                      );
+                      atmInput.value = "";
+                      atmInput.focus();
+                    } else {
+                      transaction["amount"] = Number(atmInput.value);
+                      atmInput.style.opacity = "0";
+                      atmInput.setAttribute("disabled", true);
+                      atmInput.setAttribute("placeholder", "Input card PIN");
+                      atmInput.value = "";
+                      const data = await createTransaction(transaction);
+                      const title = document.createElement("p");
+                      const type = document.createElement("p");
+                      const amount = document.createElement("p");
+                      const balance = document.createElement("p");
+                      title.style.fontSize = "20px";
+                      title.innerText = `Transaction:`;
+                      type.innerText = `Type: ${data.type}`;
+                      amount.innerText = `Amount: $${data.amount}`;
+                      balance.innerText = `Updated balance: $${data.balance}`;
+                      document.querySelector(
+                        ".balance"
+                      ).innerText = `$${data.balance}`;
+                      document
+                        .getElementById("check")
+                        .replaceChildren(title, type, amount, balance);
+                      transaction = {};
+                    }
+                    break;
+                }
+                break;
+            }
           }
         }
+        async function fetchCards() {
+          const cardsUrl = `http://127.0.0.1:3000/cards`;
+          return await fetch(cardsUrl, {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          })
+            .then(async (res) => {
+              const cards = await res.json();
+              if (res.status === 200) {
+                const buttonEls = [];
+                if (!cards.length) {
+                  const bankPageButton = document.getElementById("bank-page");
+                  bankPageButton.addEventListener("click", () => {
+                    window.location.assign("/pages/bank");
+                  });
+                  return alert("Please, get some cards");
+                }
+                for (const card of cards) {
+                  const buttonEl = document.createElement("button");
+                  buttonEl.setAttribute("class", "card");
+                  const balanceEl = document.createElement("p");
+                  const cardNumberEl = document.createElement("p");
+                  const cardHolderNameEl = document.createElement("p");
+                  const expiryDateEl = document.createElement("p");
+                  const rowEl = document.createElement("div");
+                  balanceEl.setAttribute("class", "balance");
+                  cardNumberEl.setAttribute("class", "cardNumber");
+                  cardHolderNameEl.setAttribute("class", "cardHolderName");
+                  expiryDateEl.setAttribute("class", "expiryDate");
+                  rowEl.setAttribute("class", "row");
+                  balanceEl.innerText = `$${card.balance}`;
+                  cardNumberEl.innerText = card.cardNumber
+                    .match(/\d{4}/g)
+                    .join(" ");
+                  cardHolderNameEl.innerText = card.cardHolderName;
+                  expiryDateEl.innerText = card.expiryDate
+                    .match(/\d{2}/g)
+                    .join("/");
+                  rowEl.append(cardHolderNameEl, expiryDateEl);
+                  buttonEl.replaceChildren(balanceEl, cardNumberEl, rowEl);
+                  if (cards.length > 1) {
+                    buttonEl.addEventListener("click", async () => {
+                      if (!wrapperEL.getAttribute("data-card-selected")) {
+                        wrapperEL.replaceChildren(buttonEl);
+                        wrapperEL.setAttribute("data-card-selected", card.id);
+                      } else {
+                        wrapperEL.removeAttribute("data-card-selected");
+                        await fetchCards();
+                      }
+                    });
+                  } else {
+                    wrapperEL.setAttribute("data-card-selected", card.id);
+                  }
+                  buttonEls.push(buttonEl);
+                }
+                wrapperEL.replaceChildren(...buttonEls);
+              } else if (res.status == 401) {
+                logError(data);
+              }
+            })
+            .catch((error) => {
+              console.log(error);
+            });
+        }
+        async function fetchCard(cardNumber) {
+          const cardsUrl = `http://127.0.0.1:3000/cards/${cardNumber}`;
+          return await fetch(cardsUrl, {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          })
+            .then(async (res) => {
+              const data = await res.json();
+              if (res.status === 200) {
+                return data;
+              } else if (res.status == 401) {
+                logError(data);
+              }
+            })
+            .catch((error) => {
+              console.log(error);
+            });
+        }
+        async function createTransaction(transaction) {
+          const createCardUrl = `http://127.0.0.1:3000/transactions`;
+          return fetch(createCardUrl, {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(transaction),
+          })
+            .then(async (res) => {
+              const data = await res.json();
+              if (res.status === 201) {
+                return data;
+              } else if (res.status == 400 || res.status == 401) {
+                logError(data);
+              }
+            })
+            .catch((error) => {
+              console.log(error);
+            });
+        }
+        function logError(data) {
+          if (data.message) {
+            alert(data.message);
+          }
+          if (data.error) {
+            alert(data.error);
+          }
+          if (data.errors) {
+            alert(
+              data.errors
+                .map((error) => Object.values(error.constraints))
+                .flat()
+                .join("\n")
+            );
+          }
+        }
+        document.querySelectorAll(".type-btn").forEach((typeBtn) => {
+          typeBtn.addEventListener("click", () => {
+            onTypeBtn(typeBtn.getAttribute("data-value"));
+          });
+        });
         document.querySelectorAll(".input-btn").forEach((inputBtn) => {
-          inputBtn.addEventListener("click", () => {
-            onInput(inputBtn.getAttribute("data-value"));
+          inputBtn.addEventListener("click", async () => {
+            await onInput(inputBtn.getAttribute("data-value"));
           });
         });
       });
@@ -41,30 +455,49 @@
 
   <body>
     <div class="wrapper">
+      <div class="cards">
+        <button class="card no-card" id="bank-page">
+          <p>No card selected</p>
+        </button>
+      </div>
+
       <div class="container">
         <div class="row">
           <div class="col inner-shadow">
-            <button>
+            <button class="type-btn" data-value="transfer">
               <img
                 src="/assets/svgs/arrow-right.svg"
-                alt="Balance"
+                alt="Transfer"
                 height="70"
+                width="70"
               />
             </button>
 
-            <button>
-              <img src="/assets/svgs/arrow-right.svg" alt="Loan" height="70" />
+            <button class="type-btn" data-value="withdrawal">
+              <img
+                src="/assets/svgs/arrow-right.svg"
+                alt="Withdrawal"
+                height="70"
+                width="70"
+              />
             </button>
           </div>
 
           <div class="inner-shadow">
             <div class="row">
-              <p>Balance</p>
+              <p>Transfer</p>
 
               <p>Loan</p>
             </div>
 
-            <input id="atm-input" type="text" minlength="4" maxlength="4" />
+            <input
+              id="atm-input"
+              type="text"
+              name="input"
+              placeholder="Input card PIN"
+              disabled
+              style="opacity: 0"
+            />
 
             <div class="row">
               <p>Withdrawal</p>
@@ -74,19 +507,21 @@
           </div>
 
           <div class="col inner-shadow">
-            <button>
+            <button class="type-btn" data-value="loan">
               <img
                 src="/assets/svgs/arrow-left.svg"
-                alt="Withdrawal"
+                alt="Loan"
                 height="70"
+                width="70"
               />
             </button>
 
-            <button>
+            <button class="type-btn" data-value="deposit">
               <img
                 src="/assets/svgs/arrow-left.svg"
                 alt="Deposit"
                 height="70"
+                width="70"
               />
             </button>
           </div>
@@ -146,15 +581,33 @@
           <div></div>
         </div>
       </div>
-      <div></div>
+
+      <div id="check"></div>
     </div>
 
     <style>
+      table,
+      td {
+        border: 1px solid;
+        padding: 5px 10px;
+      }
+
       .wrapper {
-        max-width: 1000px;
+        max-width: 1200px;
         margin: 100px auto;
         height: 70vh;
         display: flex;
+        gap: 20px;
+      }
+
+      .container {
+        max-width: 450px;
+        width: 100%;
+      }
+
+      #check {
+        flex-grow: 1;
+        max-width: 410px;
       }
 
       .row {
@@ -166,6 +619,7 @@
 
       .col {
         display: flex;
+        flex-grow: 1;
         flex-direction: column;
         justify-content: space-between;
         gap: 10px;
@@ -228,6 +682,63 @@
         display: flex;
         align-items: start;
         justify-content: space-between;
+      }
+
+      .cards {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        min-width: 300px;
+      }
+
+      .card {
+        display: none;
+        cursor: pointer;
+        max-height: 170px;
+        max-width: 310px;
+        height: 100%;
+        width: 100%;
+        border-radius: 10px;
+        display: block;
+      }
+
+      .card.no-card {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .card.no-card p {
+        font-size: 20px;
+        margin-bottom: 10px;
+      }
+
+      .balance {
+        font-size: 28px;
+        text-align: start;
+      }
+
+      .cardNumber {
+        margin: 40px 0 20px;
+        font-size: 18px;
+        text-align: start;
+      }
+
+      @media (max-width: 400px) {
+        .cardHolderName {
+          font-size: 14px !important;
+        }
+      }
+
+      .cardHolderName {
+        margin: 2px;
+        font-size: 18px;
+      }
+
+      .expiryDate {
+        margin: 2px;
+        font-size: 18px;
+        text-align: end;
       }
     </style>
   </body>
